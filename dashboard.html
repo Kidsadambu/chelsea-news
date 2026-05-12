@@ -4,102 +4,188 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chelsea CMS Dashboard</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Chelsea News CMS</h1>
-    <p>ระบบจัดการข่าว Chelsea FC</p>
-  </header>
 
-  <main>
-    <section class="news-card">
-      <h2>เขียนข่าวใหม่</h2>
+<header>
+  <h1>Chelsea News CMS</h1>
+  <p>ระบบจัดการข่าว Chelsea FC</p>
+</header>
 
-      <input id="title" type="text" placeholder="หัวข้อข่าว" style="width:100%;padding:12px;margin-bottom:10px;">
+<main>
 
-      <select id="category" style="width:100%;padding:12px;margin-bottom:10px;">
-        <option value="Chelsea Men">Chelsea Men</option>
-        <option value="Chelsea Women">Chelsea Women</option>
-      </select>
+<section class="news-card">
 
-      <select id="status" style="width:100%;padding:12px;margin-bottom:10px;">
-        <option value="draft">Draft</option>
-        <option value="published">Published</option>
-      </select>
+<h2>เขียนข่าวใหม่</h2>
 
-      <textarea id="content" placeholder="เนื้อหาข่าว" style="width:100%;height:250px;padding:12px;margin-bottom:10px;"></textarea>
+<input id="title" type="text" placeholder="หัวข้อข่าว" style="width:100%;padding:12px;margin-bottom:10px;">
 
-      <button onclick="createPost()" style="padding:12px 20px;background:#034694;color:white;border:none;cursor:pointer;width:100%;margin-bottom:10px;">
-        Publish News
-      </button>
+<input id="thumbnail" type="text" placeholder="URL รูปภาพ Featured Image" style="width:100%;padding:12px;margin-bottom:10px;">
 
-      <button onclick="logout()" style="padding:12px 20px;background:red;color:white;border:none;cursor:pointer;width:100%;">
-        Logout
-      </button>
+<select id="category" style="width:100%;padding:12px;margin-bottom:10px;">
+<option value="Chelsea Men">Chelsea Men</option>
+<option value="Chelsea Women">Chelsea Women</option>
+</select>
 
-      <p id="message" style="margin-top:15px;"></p>
-    </section>
-  </main>
+<select id="status" style="width:100%;padding:12px;margin-bottom:10px;">
+<option value="draft">Draft</option>
+<option value="published">Published</option>
+</select>
 
-  <script>
-    const supabaseUrl = 'https://uxvemlixicxlrpptjpjg.supabase.co';
-    const supabaseKey = 'sb_publishable_uEzdUCurZtKLMpOXYfFPGA_BAYLepLR';
+<div id="editor" style="height:300px;background:white;margin-bottom:15px;"></div>
 
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
+<button onclick="createPost()" style="padding:12px 20px;background:#034694;color:white;border:none;cursor:pointer;width:100%;margin-bottom:10px;">
+Publish News
+</button>
 
-    const session = localStorage.getItem('chelsea-session');
+<button onclick="logout()" style="padding:12px 20px;background:red;color:white;border:none;cursor:pointer;width:100%;">
+Logout
+</button>
 
-    if (!session) {
-      window.location.href = 'admin.html';
-    }
+<p id="message" style="margin-top:15px;"></p>
 
-    function slugify(text) {
-      return text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
-    }
+</section>
 
-    async function createPost() {
-      const title = document.getElementById('title').value;
-      const category = document.getElementById('category').value;
-      const status = document.getElementById('status').value;
-      const content = document.getElementById('content').value;
-      const message = document.getElementById('message');
+<section class="news-card">
+<h2>รายการข่าว</h2>
+<div id="posts-table"></div>
+</section>
 
-      const slug = slugify(title);
+</main>
 
-      const { error } = await client
-        .from('posts')
-        .insert([
-          {
-            title,
-            slug,
-            category,
-            content,
-            status
-          }
-        ]);
+<script>
+const supabaseUrl = 'https://uxvemlixicxlrpptjpjg.supabase.co';
+const supabaseKey = 'sb_publishable_uEzdUCurZtKLMpOXYfFPGA_BAYLepLR';
 
-      if (error) {
-        message.style.color = 'red';
-        message.innerText = 'เกิดข้อผิดพลาด: ' + error.message;
-        return;
+const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+const session = localStorage.getItem('chelsea-session');
+
+if (!session) {
+  window.location.href = 'admin.html';
+}
+
+const quill = new Quill('#editor', {
+  theme: 'snow',
+  placeholder: 'เขียนข่าว Chelsea...',
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered'}, { list: 'bullet' }],
+      ['link', 'blockquote'],
+      ['clean']
+    ]
+  }
+});
+
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+}
+
+async function createPost() {
+
+  const title = document.getElementById('title').value;
+  const thumbnail = document.getElementById('thumbnail').value;
+  const category = document.getElementById('category').value;
+  const status = document.getElementById('status').value;
+  const content = quill.root.innerHTML;
+  const message = document.getElementById('message');
+
+  const slug = slugify(title);
+
+  const { error } = await client
+    .from('posts')
+    .insert([
+      {
+        title,
+        slug,
+        thumbnail,
+        category,
+        content,
+        status
       }
+    ]);
 
-      message.style.color = 'green';
-      message.innerText = 'เผยแพร่ข่าวเรียบร้อยแล้ว';
+  if (error) {
+    message.style.color = 'red';
+    message.innerText = error.message;
+    return;
+  }
 
-      document.getElementById('title').value = '';
-      document.getElementById('content').value = '';
-    }
+  message.style.color = 'green';
+  message.innerText = 'เผยแพร่ข่าวเรียบร้อยแล้ว';
 
-    function logout() {
-      localStorage.removeItem('chelsea-session');
-      window.location.href = 'admin.html';
-    }
-  </script>
+  document.getElementById('title').value = '';
+  document.getElementById('thumbnail').value = '';
+  quill.root.innerHTML = '';
+
+  loadPosts();
+}
+
+async function loadPosts() {
+
+  const table = document.getElementById('posts-table');
+
+  const { data } = await client
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (!data || !data.length) {
+    table.innerHTML = '<p>ยังไม่มีข่าว</p>';
+    return;
+  }
+
+  table.innerHTML = data.map(post => `
+
+    <div style="border-bottom:1px solid #ddd;padding:15px 0;">
+
+      <h3>${post.title}</h3>
+
+      <small>${post.category} | ${post.status}</small>
+
+      <div style="margin-top:10px;">
+
+        <button onclick="deletePost(${post.id})" style="background:red;color:white;border:none;padding:8px 12px;cursor:pointer;">
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join('');
+}
+
+async function deletePost(id) {
+
+  await client
+    .from('posts')
+    .delete()
+    .eq('id', id);
+
+  loadPosts();
+}
+
+function logout() {
+  localStorage.removeItem('chelsea-session');
+  window.location.href = 'admin.html';
+}
+
+loadPosts();
+
+</script>
+
 </body>
 </html>
