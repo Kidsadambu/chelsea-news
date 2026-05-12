@@ -4,30 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chelsea News</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <header>
-    <h1>Chelsea News</h1>
-    <p>ข่าว Chelsea FC ทีมชาย และ ทีมหญิง</p>
-  </header>
 
-  <main>
+<header>
+  <h1>Chelsea News</h1>
+  <p>ข่าว Chelsea FC ทีมชาย และ ทีมหญิง</p>
+</header>
+
+<main id="news-container"></main>
+
+<footer>
+  <p>© 2026 Chelsea News</p>
+</footer>
+
+<script>
+const supabaseUrl = 'https://uxvemlixicxlrpptjpjg.supabase.co';
+const supabaseKey = 'YOUR_PUBLISHABLE_KEY';
+
+const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+async function loadPosts() {
+
+  const container = document.getElementById('news-container');
+
+  const { data, error } = await client
+    .from('posts')
+    .select('*')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = '<p>โหลดข่าวไม่สำเร็จ</p>';
+    return;
+  }
+
+  if (!data.length) {
+    container.innerHTML = '<p>ยังไม่มีข่าว</p>';
+    return;
+  }
+
+  container.innerHTML = data.map(post => `
     <section class="news-card">
-      <img src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=1200&auto=format&fit=crop" alt="Chelsea">
-      <h2>Chelsea เปิดตัวผู้เล่นใหม่</h2>
-      <p>สโมสร Chelsea เปิดตัวนักเตะใหม่อย่างเป็นทางการ พร้อมเป้าหมายลุ้นแชมป์ฤดูกาลใหม่</p>
-    </section>
 
-    <section class="news-card">
-      <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop" alt="Chelsea Women">
-      <h2>Chelsea Women ฟอร์มร้อนแรง</h2>
-      <p>ทีมหญิง Chelsea เก็บชัยชนะต่อเนื่อง พร้อมนำจ่าฝูงลีก</p>
-    </section>
-  </main>
+      <img src="${post.thumbnail || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop'}">
 
-  <footer>
-    <p>© 2026 Chelsea News</p>
-  </footer>
+      <div style="padding:15px;">
+
+        <small>${post.category}</small>
+
+        <h2>${post.title}</h2>
+
+        <p>${post.content.substring(0,120)}...</p>
+
+      </div>
+
+    </section>
+  `).join('');
+}
+
+loadPosts();
+</script>
+
 </body>
 </html>
