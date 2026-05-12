@@ -3,30 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
+  <title>Chelsea CMS Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
-    <h1>Chelsea Admin Dashboard</h1>
+    <h1>Chelsea News CMS</h1>
+    <p>ระบบจัดการข่าว Chelsea FC</p>
   </header>
 
   <main>
     <section class="news-card">
-      <h2>ระบบหลังบ้าน</h2>
-      <p>คุณเข้าสู่ระบบเรียบร้อยแล้ว</p>
+      <h2>เขียนข่าวใหม่</h2>
 
-      <button onclick="logout()" style="padding:12px 20px;background:red;color:white;border:none;cursor:pointer;">
+      <input id="title" type="text" placeholder="หัวข้อข่าว" style="width:100%;padding:12px;margin-bottom:10px;">
+
+      <select id="category" style="width:100%;padding:12px;margin-bottom:10px;">
+        <option value="Chelsea Men">Chelsea Men</option>
+        <option value="Chelsea Women">Chelsea Women</option>
+      </select>
+
+      <select id="status" style="width:100%;padding:12px;margin-bottom:10px;">
+        <option value="draft">Draft</option>
+        <option value="published">Published</option>
+      </select>
+
+      <textarea id="content" placeholder="เนื้อหาข่าว" style="width:100%;height:250px;padding:12px;margin-bottom:10px;"></textarea>
+
+      <button onclick="createPost()" style="padding:12px 20px;background:#034694;color:white;border:none;cursor:pointer;width:100%;margin-bottom:10px;">
+        Publish News
+      </button>
+
+      <button onclick="logout()" style="padding:12px 20px;background:red;color:white;border:none;cursor:pointer;width:100%;">
         Logout
       </button>
+
+      <p id="message" style="margin-top:15px;"></p>
     </section>
   </main>
 
   <script>
+    const supabaseUrl = 'https://uxvemlixicxlrpptjpjg.supabase.co';
+    const supabaseKey = 'sb_publishable_uEzdUCurZtKLMpOXYfFPGA_BAYLepLR';
+
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
+
     const session = localStorage.getItem('chelsea-session');
 
     if (!session) {
       window.location.href = 'admin.html';
+    }
+
+    function slugify(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+    }
+
+    async function createPost() {
+      const title = document.getElementById('title').value;
+      const category = document.getElementById('category').value;
+      const status = document.getElementById('status').value;
+      const content = document.getElementById('content').value;
+      const message = document.getElementById('message');
+
+      const slug = slugify(title);
+
+      const { error } = await client
+        .from('posts')
+        .insert([
+          {
+            title,
+            slug,
+            category,
+            content,
+            status
+          }
+        ]);
+
+      if (error) {
+        message.style.color = 'red';
+        message.innerText = 'เกิดข้อผิดพลาด: ' + error.message;
+        return;
+      }
+
+      message.style.color = 'green';
+      message.innerText = 'เผยแพร่ข่าวเรียบร้อยแล้ว';
+
+      document.getElementById('title').value = '';
+      document.getElementById('content').value = '';
     }
 
     function logout() {
