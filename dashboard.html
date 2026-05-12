@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Chelsea Admin Dashboard</h1>
+  </header>
+
+  <main>
+    <section class="news-card">
+      <h2>ระบบหลังบ้าน</h2>
+      <p>คุณเข้าสู่ระบบเรียบร้อยแล้ว</p>
+
+      <button onclick="logout()" style="padding:12px 20px;background:red;color:white;border:none;cursor:pointer;">
+        Logout
+      </button>
+    </section>
+  </main>
+
+  <script>
+    const session = localStorage.getItem('chelsea-session');
+
+    if (!session) {
+      window.location.href = 'admin.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('chelsea-session');
+      window.location.href = 'admin.html';
+    }
+  </script>
+</body>
+</html>
