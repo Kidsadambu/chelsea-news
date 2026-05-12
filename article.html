@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chelsea News Article</title>
 
+  <meta name="description" content="Chelsea FC News Website">
+
   <link rel="stylesheet" href="style.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,13 +26,11 @@
 <script>
 
 const supabaseUrl = 'https://uxvemlixicxlrpptjpjg.supabase.co';
-
 const supabaseKey = 'sb_publishable_uEzdUCurZtKLMpOXYfFPGA_BAYLepLR';
 
 const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 const params = new URLSearchParams(window.location.search);
-
 const slug = params.get('slug');
 
 async function loadArticle() {
@@ -48,26 +48,35 @@ async function loadArticle() {
     return;
   }
 
-  document.title = data.title;
+  document.title = data.title + ' | Chelsea News';
+
+  document.querySelector('meta[name="description"]').setAttribute(
+    'content',
+    data.content.replace(/<[^>]*>?/gm, '').substring(0, 160)
+  );
 
   container.innerHTML = `
-  
+
     <article class="news-card">
 
-      <img 
+      <img
         src="${data.thumbnail || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop'}"
-        style="width:100%;height:400px;object-fit:cover;"
+        style="width:100%;height:450px;object-fit:cover;"
       >
 
-      <div style="padding:20px;">
+      <div style="padding:25px;">
 
-        <small>${data.category}</small>
+        <small style="color:#666;font-size:14px;">
+          ${data.category}
+        </small>
 
-        <h1>${data.title}</h1>
+        <h1 style="margin-top:10px;font-size:42px;line-height:1.2;">
+          ${data.title}
+        </h1>
 
-        <p style="line-height:1.8;font-size:18px;">
+        <div style="line-height:1.9;font-size:20px;margin-top:30px;">
           ${data.content}
-        </p>
+        </div>
 
       </div>
 
