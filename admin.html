@@ -3,23 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel</title>
+  <title>Chelsea News Admin</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
     <h1>Chelsea News Admin</h1>
+    <p>ระบบจัดการข่าว Chelsea FC</p>
   </header>
 
   <main>
     <section class="news-card">
       <h2>Login Admin</h2>
-      <form>
-        <input type="text" placeholder="Admin ID" style="width:100%;padding:10px;margin-bottom:10px;">
-        <input type="password" placeholder="Password" style="width:100%;padding:10px;margin-bottom:10px;">
-        <button style="padding:10px 20px;background:#034694;color:white;border:none;">Login</button>
-      </form>
+
+      <input id="email" type="email" placeholder="Email" style="width:100%;padding:12px;margin-bottom:10px;">
+
+      <input id="password" type="password" placeholder="Password" style="width:100%;padding:12px;margin-bottom:10px;">
+
+      <button onclick="login()" style="padding:12px 20px;background:#034694;color:white;border:none;cursor:pointer;width:100%;">
+        Login
+      </button>
+
+      <p id="message" style="margin-top:15px;color:red;"></p>
     </section>
   </main>
+
+  <script>
+    const supabaseUrl = 'https://uxvemlixicxlrpptjpjg.supabase.co';
+    const supabaseKey = 'sb_publishable_uEzdUCurZtKLMpOXYfFPGA_BAYLepLR';
+
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const message = document.getElementById('message');
+
+      const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        message.innerText = 'Login ไม่สำเร็จ';
+        return;
+      }
+
+      localStorage.setItem('chelsea-session', JSON.stringify(data.session));
+
+      window.location.href = 'dashboard.html';
+    }
+  </script>
 </body>
 </html>
